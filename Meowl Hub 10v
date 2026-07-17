@@ -1,0 +1,1672 @@
+--============================================================--
+--                 🐾 MEOWL HUB V10 🐾
+--   Owner: Superman72657   |   Credits: meowlsoul_67
+--   Discord: https://discord.gg/7YAEYT6tT
+--   Key: meowlhubkey67
+--============================================================--
+
+--============ CONFIG (edit me) ============--
+local KEY              = "meowlhubkey67"
+local DISCORD          = "https://discord.gg/7YAEYT6tT"
+local OWNER_USER       = "superman72657"
+local CREDIT_USER      = "meowlsoul_67"
+local PREMIUM_LIST_URL = ""
+local WEBHOOK_URL      = ""
+local AI_API_URL       = ""
+
+--============ SERVICES ============--
+local Players     = game:GetService("Players")
+local TweenService= game:GetService("TweenService")
+local RunService  = game:GetService("RunService")
+local UIS         = game:GetService("UserInputService")
+local Lighting    = game:GetService("Lighting")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local SoundService = game:GetService("SoundService")
+local LP = Players.LocalPlayer
+local Cam = workspace.CurrentCamera
+
+local EXECUTOR = "Unknown"
+pcall(function() EXECUTOR = identifyexecutor() end)
+
+local function setclip(t) pcall(function() (setclipboard or toclipboard)(t) end) end
+local function HttpReq(t)
+    local req = (syn and syn.request) or (http and http.request) or http_request or request
+    if req then return req(t) end
+end
+
+--============ THEME ============--
+local Accent = Color3.fromRGB(170, 85, 255)
+local C_BG    = Color3.fromRGB(18, 18, 26)
+local C_TOP   = Color3.fromRGB(12, 12, 18)
+local C_PANEL = Color3.fromRGB(28, 28, 38)
+local C_CARD  = Color3.fromRGB(40, 40, 54)
+local C_CARD_H= Color3.fromRGB(50, 50, 68)
+local C_TEXT  = Color3.fromRGB(245, 245, 250)
+local C_SUB   = Color3.fromRGB(140, 140, 160)
+
+--============ HELPERS ============--
+local Anims = true
+local Cons  = {}
+local AccentObjs = {}
+
+local function New(class, props)
+    local o = Instance.new(class)
+    for k,v in pairs(props or {}) do pcall(function() o[k]=v end) end
+    return o
+end
+local function Con(sig, fn) local c = sig:Connect(fn) table.insert(Cons,c) return c end
+local function Reg(o,p) pcall(function() o[p]=Accent end) table.insert(AccentObjs,{o=o,p=p}) end
+local function ApplyAccent()
+    for _,e in ipairs(AccentObjs) do pcall(function() e.o[e.p]=Accent end) end
+end
+local function Tw(obj, t, props, style, dir)
+    if not Anims then for k,v in pairs(props) do pcall(function() obj[k]=v end) end return end
+    local ti = TweenInfo.new(t, style or Enum.EasingStyle.Quint, dir or Enum.EasingDirection.Out)
+    local tw = TweenService:Create(obj, ti, props)
+    tw:Play()
+    return tw
+end
+local function ParentGui(g)
+    local ok, hui = pcall(function() return gethui and gethui() end)
+    if ok and hui then g.Parent = hui return end
+    pcall(function() g.Parent = game:GetService("CoreGui") end)
+    if not g.Parent then g.Parent = LP:WaitForChild("PlayerGui") end
+end
+local function Drag(obj, handle)
+    handle = handle or obj
+    local dragging, startPos, startInput = false, nil, nil
+    Con(handle.InputBegan, function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragging, startPos, startInput = true, obj.Position, i.Position
+        end
+    end)
+    Con(UIS.InputChanged, function(i)
+        if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            local d = i.Position - startInput
+            obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+        end
+    end)
+    Con(UIS.InputEnded, function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging = false end
+    end)
+end
+local function Chat(msg)
+    pcall(function() game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents",2).SayMessageRequest:FireServer(msg,"All") end)
+    pcall(function() game:GetService("TextChatService").TextChannels.RBXGeneral:SendAsync(msg) end)
+end
+local function RunURL(url)
+    local ok = pcall(function() loadstring(game:HttpGet(url))() end)
+    if not ok then Notify("🐾 MEOWL HUB","Failed (source down or outdated)") end
+end
+
+--============ NOTIFY GUI ============--
+local NotifGui = New("ScreenGui",{Name="MeowlNotifs", ResetOnSpawn=false})
+ParentGui(NotifGui)
+local NotifHolder = New("Frame",{AnchorPoint=Vector2.new(1,1), Position=UDim2.new(1,-14,1,-14),
+    Size=UDim2.new(0,300,1,-28), BackgroundTransparency=1, Parent=NotifGui})
+New("UIListLayout",{VerticalAlignment=Enum.VerticalAlignment.Bottom, Padding=UDim.new(0,8), Parent=NotifHolder})
+
+function Notify(title, msg, dur)
+    dur = dur or 3.5
+    local f = New("Frame",{Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y, BackgroundColor3=C_TOP, Parent=NotifHolder})
+    New("UICorner",{CornerRadius=UDim.new(0,14), Parent=f})
+    Reg(New("UIStroke",{Thickness=1.5, Parent=f}),"Color")
+    New("UIPadding",{PaddingTop=UDim.new(0,12), PaddingBottom=UDim.new(0,12), PaddingLeft=UDim.new(0,14), PaddingRight=UDim.new(0,14), Parent=f})
+    New("TextLabel",{Size=UDim2.new(1,-20,0,20), BackgroundTransparency=1,
+        Text=title, Font=Enum.Font.GothamBold, TextSize=14, TextColor3=C_TEXT, TextXAlignment=Enum.TextXAlignment.Left, Parent=f})
+    New("TextLabel",{Position=UDim2.new(0,0,0,24), Size=UDim2.new(1,-20,0,0), AutomaticSize=Enum.AutomaticSize.Y, BackgroundTransparency=1,
+        Text=msg, Font=Enum.Font.Gotham, TextSize=12, TextColor3=C_SUB, TextXAlignment=Enum.TextXAlignment.Left,
+        TextYAlignment=Enum.TextYAlignment.Top, TextWrapped=true, Parent=f})
+    local bar = New("Frame",{AnchorPoint=Vector2.new(0,1), Position=UDim2.new(0,0,1,0), Size=UDim2.new(1,0,0,3), BackgroundColor3=Accent, Parent=f})
+    New("UICorner",{CornerRadius=UDim.new(0,0), Parent=bar})
+    Reg(bar,"BackgroundColor3")
+    local sc = New("UIScale",{Scale=0.5, Parent=f})
+    Tw(sc,.35,{Scale=1},Enum.EasingStyle.Back)
+    Tw(bar, dur, {Size=UDim2.new(0,0,0,3)}, Enum.EasingStyle.Linear)
+    task.delay(dur, function()
+        Tw(sc,.25,{Scale=0.5},Enum.EasingStyle.Back,Enum.EasingDirection.In)
+        task.wait(.3) pcall(function() f:Destroy() end)
+    end)
+end
+
+--============ PREMIUM ============--
+local Premium = {[OWNER_USER]=true, [CREDIT_USER]=true}
+local function LoadPremiumList()
+    if PREMIUM_LIST_URL == "" then return end
+    pcall(function()
+        for line in string.gmatch(game:HttpGet(PREMIUM_LIST_URL), "[^
+]+") do
+            local n = line:gsub("%s",""):lower()
+            if #n > 0 then Premium[n] = true end
+        end
+    end)
+end
+task.spawn(LoadPremiumList)
+local function IsPremium(n) return Premium[n:lower()] == true end
+local function Rank()
+    if LP.Name:lower() == OWNER_USER then return "👑 OWNER" end
+    if IsPremium(LP.Name) then return "👑 PREMIUM" end
+    return "🐾 Member"
+end
+
+--============ FEATURE STATE ============--
+local Flags = {Fly=false, Noclip=false, ESP=false, Speed=false, Jump=false, Fling=false, Spin=false,
+    Spam=false, FakeLag=false, Invis=false, Follow=false, AntiAFK=false, AntiVoid=false,
+    AntiRagdoll=false, AntiFling=false, NoSit=false, Fullbright=false, Rainbow=false,
+    AutoFarm=false, GodMode=false, AutoClick=false, Aimbot=false, Tracers=false,
+    BoxESP=false, NameESP=false, Chams=false, Hitbox=false, XRay=false}
+local SelPlayer = nil
+local FlyBV, FlyBG, FlyCon, NoclipCon, FlingBV, SpinBV, AntiAFKCon, AutoClickCon, AimbotCon
+local PlayingTracks = {}
+local InvisStore = {}
+
+--============ MAIN GUI ============--
+local ScreenGui = New("ScreenGui",{Name="MeowlHub", ResetOnSpawn=false, IgnoreGuiInset=true})
+ParentGui(ScreenGui)
+
+-- Background particles
+local Particles = New("Frame",{Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, ZIndex=0, Parent=ScreenGui})
+for i = 1, 20 do
+    local p = New("Frame",{Size=UDim2.new(0,math.random(2,6),0,math.random(2,6)),
+        Position=UDim2.new(math.random(),0,math.random(),0), BackgroundColor3=Accent,
+        BackgroundTransparency=0.85, Parent=Particles})
+    New("UICorner",{CornerRadius=UDim.new(1,0), Parent=p})
+    task.spawn(function()
+        while p.Parent do
+            Tw(p, math.random(3,8), {Position=UDim2.new(math.random(),0,math.random(),0)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            task.wait(math.random(3,8))
+        end
+    end)
+end
+
+local BuildHub
+BuildHub = function()
+    --=== CAT TOGGLE BUTTON ===--
+    local CatBtn = New("TextButton",{Size=UDim2.new(0,58,0,58), Position=UDim2.new(0,18,0.5,-29),
+        BackgroundColor3=C_PANEL, Text="🐱", TextSize=32, Font=Enum.Font.GothamBold, TextColor3=C_TEXT,
+        AutoButtonColor=false, ZIndex=60, Parent=ScreenGui})
+    New("UICorner",{CornerRadius=UDim.new(1,0), Parent=CatBtn})
+    Reg(New("UIStroke",{Thickness=2.5, Parent=CatBtn}),"Color")
+    New("UIGradient",{Color=ColorSequence.new(Color3.fromRGB(70,45,110), Color3.fromRGB(28,28,42)), Rotation=45, Parent=CatBtn})
+    Drag(CatBtn)
+
+    local CatPulse = New("Frame",{Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, Parent=CatBtn})
+    local ring = New("Frame",{AnchorPoint=Vector2.new(0.5,0.5), Position=UDim2.new(0.5,0,0.5,0),
+        Size=UDim2.new(1.3,0,1.3,0), BackgroundColor3=Accent, BackgroundTransparency=0.9, Parent=CatPulse})
+    New("UICorner",{CornerRadius=UDim.new(1,0), Parent=ring})
+    Reg(ring,"BackgroundColor3")
+    task.spawn(function()
+        while CatPulse.Parent do
+            ring.Size = UDim2.new(1.3,0,1.3,0) ring.BackgroundTransparency = 0.9
+            Tw(ring,1.2,{Size=UDim2.new(2,0,2,0),BackgroundTransparency=1},Enum.EasingStyle.Quad)
+            task.wait(1.5)
+        end
+    end)
+
+    task.spawn(function()
+        while ScreenGui.Parent do
+            Tw(CatBtn,1.2,{Size=UDim2.new(0,62,0,62)},Enum.EasingStyle.Sine,Enum.EasingDirection.InOut)
+            task.wait(1.2)
+            if not ScreenGui.Parent then break end
+            Tw(CatBtn,1.2,{Size=UDim2.new(0,58,0,58)},Enum.EasingStyle.Sine,Enum.EasingDirection.InOut)
+            task.wait(1.2)
+        end
+    end)
+
+    --=== MAIN FRAME ===--
+    local Main = New("Frame",{AnchorPoint=Vector2.new(.5,.5), Position=UDim2.new(.5,0,.5,0),
+        Size=UDim2.new(0,720,0,460), BackgroundColor3=C_BG, ClipsDescendants=true, Parent=ScreenGui})
+    New("UICorner",{CornerRadius=UDim.new(0,18), Parent=Main})
+    local mainStroke = New("UIStroke",{Thickness=2.5, Parent=Main})
+    Reg(mainStroke,"Color")
+    local strokeGrad = New("UIGradient",{Color=ColorSequence.new(Color3.new(1,1,1), Color3.fromRGB(140,140,160), Color3.new(1,1,1)), Parent=mainStroke})
+    task.spawn(function()
+        while Main.Parent do strokeGrad.Rotation = (strokeGrad.Rotation + 2) % 360 task.wait(0.025) end
+    end)
+
+    local Glow = New("Frame",{AnchorPoint=Vector2.new(0.5,0.5), Position=UDim2.new(0.5,0,0.5,0),
+        Size=UDim2.new(1.08,0,1.08,0), BackgroundColor3=Accent, BackgroundTransparency=0.92, ZIndex=-1, Parent=Main})
+    New("UICorner",{CornerRadius=UDim.new(0,22), Parent=Glow})
+    Reg(Glow,"BackgroundColor3")
+    task.spawn(function()
+        while Glow.Parent do
+            Tw(Glow,2,{BackgroundTransparency=0.88},Enum.EasingStyle.Sine,Enum.EasingDirection.InOut)
+            task.wait(2)
+            if not Glow.Parent then break end
+            Tw(Glow,2,{BackgroundTransparency=0.94},Enum.EasingStyle.Sine,Enum.EasingDirection.InOut)
+            task.wait(2)
+        end
+    end)
+
+    local MainScale = New("UIScale",{Scale=0.6, Parent=Main})
+    Drag(Main, nil)
+
+    --=== TOP BAR ===--
+    local Top = New("Frame",{Size=UDim2.new(1,0,0,52), BackgroundColor3=C_TOP, Parent=Main})
+    New("UICorner",{CornerRadius=UDim.new(0,18), Parent=Top})
+    New("Frame",{Size=UDim2.new(1,0,0,16), Position=UDim2.new(0,0,1,-16), BackgroundColor3=C_TOP, BorderSizePixel=0, Parent=Top})
+
+    New("TextLabel",{Position=UDim2.new(0,14,0,6), Size=UDim2.new(0,40,0,22), BackgroundTransparency=1,
+        Text="🐾", Font=Enum.Font.GothamBold, TextSize=22, TextColor3=C_TEXT,
+        TextXAlignment=Enum.TextXAlignment.Left, Parent=Top})
+    New("TextLabel",{Position=UDim2.new(0,42,0,6), Size=UDim2.new(0,300,0,22), BackgroundTransparency=1,
+        Text="MEOWL HUB", Font=Enum.Font.GothamBold, TextSize=18, TextColor3=C_TEXT,
+        TextXAlignment=Enum.TextXAlignment.Left, Parent=Top})
+    New("TextLabel",{Position=UDim2.new(0,44,0,28), Size=UDim2.new(0,300,0,16), BackgroundTransparency=1,
+        Text="V10  -  by Superman72657 & meowlsoul_67", Font=Enum.Font.Gotham, TextSize=10, TextColor3=C_SUB,
+        TextXAlignment=Enum.TextXAlignment.Left, Parent=Top})
+
+    local PageTitle = New("TextLabel",{AnchorPoint=Vector2.new(1,0), Position=UDim2.new(1,-94,0,6),
+        Size=UDim2.new(0,220,0,24), BackgroundTransparency=1, Text="|  Home", Font=Enum.Font.GothamBold,
+        TextSize=14, TextColor3=C_SUB, TextXAlignment=Enum.TextXAlignment.Right, Parent=Top})
+
+    local GearBtn = New("TextButton",{AnchorPoint=Vector2.new(1,0), Position=UDim2.new(1,-50,0,10),
+        Size=UDim2.new(0,32,0,32), BackgroundColor3=C_CARD, Text="⚙️", TextSize=16, Font=Enum.Font.GothamBold,
+        TextColor3=C_TEXT, AutoButtonColor=false, Parent=Top})
+    New("UICorner",{CornerRadius=UDim.new(0,10), Parent=GearBtn})
+
+    local CloseBtn = New("TextButton",{AnchorPoint=Vector2.new(1,0), Position=UDim2.new(1,-12,0,10),
+        Size=UDim2.new(0,32,0,32), BackgroundColor3=C_CARD, Text="✕", TextSize=16, Font=Enum.Font.GothamBold,
+        TextColor3=Color3.fromRGB(255,100,100), AutoButtonColor=false, Parent=Top})
+    New("UICorner",{CornerRadius=UDim.new(0,10), Parent=CloseBtn})
+
+    --=== SIDEBAR ===--
+    local Side = New("Frame",{Position=UDim2.new(0,10,0,60), Size=UDim2.new(0,56,1,-70),
+        BackgroundColor3=C_TOP, Parent=Main})
+    New("UICorner",{CornerRadius=UDim.new(0,14), Parent=Side})
+    local SideList = New("ScrollingFrame",{Size=UDim2.new(1,0,1,0), BackgroundTransparency=1,
+        ScrollBarThickness=0, CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.Y, Parent=Side})
+    New("UIListLayout",{Padding=UDim.new(0,8), HorizontalAlignment=Enum.HorizontalAlignment.Center, Parent=SideList})
+    New("UIPadding",{PaddingTop=UDim.new(0,8), Parent=SideList})
+
+    --=== PAGE HOLDER ===--
+    local PageHolder = New("Frame",{Position=UDim2.new(0,74,0,60), Size=UDim2.new(1,-86,1,-70),
+        BackgroundTransparency=1, Parent=Main})
+
+    --=== RESIZE HANDLE ===--
+    local rz = New("TextButton",{Size=UDim2.new(0,32,0,32), Position=UDim2.new(1,-34,1,-34),
+        BackgroundTransparency=1, Text="◢", TextSize=18, TextColor3=C_SUB, ZIndex=30, Parent=Main})
+    local resizing, rStart, sStart = false, nil, nil
+    Con(rz.InputBegan, function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            resizing, rStart, sStart = true, i.Position, Main.Size
+        end
+    end)
+    Con(UIS.InputChanged, function(i)
+        if resizing and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            local d = i.Position - rStart
+            Main.Size = UDim2.new(0, math.clamp(sStart.X.Offset + d.X, 480, 1000), 0, math.clamp(sStart.Y.Offset + d.Y, 320, 700))
+        end
+    end)
+    Con(UIS.InputEnded, function() resizing = false end)
+
+    --=== OPEN / CLOSE ===--
+    local HubOpen = false
+    local function SetHub(open)
+        HubOpen = open
+        if open then
+            Main.Visible = true
+            Tw(MainScale,.4,{Scale=1},Enum.EasingStyle.Back)
+        else
+            Tw(MainScale,.25,{Scale=0.6},Enum.EasingStyle.Back,Enum.EasingDirection.In)
+            task.delay(.28, function() if not HubOpen then Main.Visible = false end end)
+        end
+    end
+    Con(CatBtn.MouseButton1Click, function() SetHub(not HubOpen) end)
+    Con(CloseBtn.MouseButton1Click, function() SetHub(false) end)
+
+    --=== TAB SYSTEM ===--
+    local Pages, TabBtns = {}, {}
+    local function SwitchTab(name)
+        for n,pg in pairs(Pages) do pg.Visible = (n == name) end
+        for n,b in pairs(TabBtns) do 
+            Tw(b,.2,{BackgroundColor3 = (n==name) and Accent or C_CARD})
+            if n==name then Tw(b,.2,{Size=UDim2.new(0,48,0,48)}) else Tw(b,.2,{Size=UDim2.new(0,44,0,44)}) end
+        end
+        PageTitle.Text = "|  "..name
+    end
+    local function MakeTab(icon, name)
+        local b = New("TextButton",{Size=UDim2.new(0,44,0,44), BackgroundColor3=C_CARD, Text=icon,
+            TextSize=20, Font=Enum.Font.GothamBold, TextColor3=C_TEXT, AutoButtonColor=false, Parent=SideList})
+        New("UICorner",{CornerRadius=UDim.new(0,12), Parent=b})
+        local pg = New("ScrollingFrame",{Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, Visible=false,
+            ScrollBarThickness=4, ScrollBarImageColor3=Accent, CanvasSize=UDim2.new(0,0,0,0),
+            AutomaticCanvasSize=Enum.AutomaticSize.Y, Parent=PageHolder})
+        New("UIListLayout",{Padding=UDim.new(0,10), Parent=pg})
+        New("UIPadding",{PaddingTop=UDim.new(0,4), PaddingBottom=UDim.new(0,12), PaddingRight=UDim.new(0,6), Parent=pg})
+        Pages[name], TabBtns[name] = pg, b
+        Con(b.MouseButton1Click, function() SwitchTab(name) end)
+        return pg
+    end
+    Con(GearBtn.MouseButton1Click, function() SwitchTab("Settings") end)
+
+    --=== CONTENT HELPERS ===--
+    local function AddLabel(pg, text, size, color)
+        return New("TextLabel",{Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y, BackgroundTransparency=1,
+            Text=text, Font=Enum.Font.Gotham, TextSize=size or 12, TextColor3=color or C_SUB,
+            TextXAlignment=Enum.TextXAlignment.Left, TextWrapped=true, Parent=pg})
+    end
+    local function AddBtn(pg, text, cb, color)
+        local b = New("TextButton",{Size=UDim2.new(1,0,0,42), BackgroundColor3=color or C_CARD, Text=text,
+            Font=Enum.Font.GothamBold, TextSize=13, TextColor3=C_TEXT, AutoButtonColor=false, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,12), Parent=b})
+        Con(b.MouseEnter, function() Tw(b,.15,{BackgroundColor3=C_CARD_H}) end)
+        Con(b.MouseLeave, function() Tw(b,.15,{BackgroundColor3=color or C_CARD}) end)
+        Con(b.MouseButton1Down, function() Tw(b,.08,{Size=UDim2.new(1,-8,0,40)}) end)
+        Con(b.MouseButton1Up,   function() Tw(b,.15,{Size=UDim2.new(1,0,0,42)},Enum.EasingStyle.Back) end)
+        Con(b.MouseButton1Click, function() pcall(cb) end)
+        return b
+    end
+    local function AddBox(pg, placeholder)
+        local t = New("TextBox",{Size=UDim2.new(1,0,0,42), BackgroundColor3=C_CARD, Text="", PlaceholderText=placeholder,
+            PlaceholderColor3=C_SUB, Font=Enum.Font.Gotham, TextSize=13, TextColor3=C_TEXT,
+            ClearTextOnFocus=false, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,12), Parent=t})
+        Con(t.Focused, function() Tw(t,.15,{BackgroundColor3=C_CARD_H}) end)
+        Con(t.FocusLost, function() Tw(t,.15,{BackgroundColor3=C_CARD}) end)
+        return t
+    end
+
+    local function AddPickerGrid(pg, items, pickWord)
+        local grid = New("Frame",{Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
+            BackgroundTransparency=1, Parent=pg})
+        New("UIGridLayout",{CellSize=UDim2.new(0.5,-6,0,88), CellPadding=UDim2.new(0,10,0,10),
+            SortOrder=Enum.SortOrder.LayoutOrder, Parent=grid})
+        local current, selLabel = nil, nil
+        for _,it in ipairs(items) do
+            local card = New("TextButton",{BackgroundColor3=C_CARD, Text="", AutoButtonColor=false, Parent=grid})
+            New("UICorner",{CornerRadius=UDim.new(0,12), Parent=card})
+            New("TextLabel",{Position=UDim2.new(0,0,0,8), Size=UDim2.new(1,0,0,28), BackgroundTransparency=1,
+                Text=it.icon, TextSize=24, Font=Enum.Font.GothamBold, TextColor3=C_TEXT, Parent=card})
+            New("TextLabel",{Position=UDim2.new(0,6,0,34), Size=UDim2.new(1,-12,0,32), BackgroundTransparency=1,
+                Text=it.name, TextSize=12, Font=Enum.Font.GothamBold, TextColor3=C_TEXT, TextWrapped=true, Parent=card})
+            New("TextLabel",{Position=UDim2.new(0,0,1,-18), Size=UDim2.new(1,0,0,16), BackgroundTransparency=1,
+                Text="Click To Pick", TextSize=9, Font=Enum.Font.Gotham, TextColor3=C_SUB, Parent=card})
+            Con(card.MouseEnter, function() Tw(card,.15,{BackgroundColor3=C_CARD_H}) end)
+            Con(card.MouseLeave, function() if current ~= it then Tw(card,.15,{BackgroundColor3=C_CARD}) end end)
+            Con(card.MouseButton1Click, function()
+                current = it
+                selLabel.Text = it.icon.."  "..it.name
+                for _,c in ipairs(grid:GetChildren()) do
+                    if c:IsA("TextButton") then Tw(c,.15,{BackgroundColor3=C_CARD}) end
+                end
+                Tw(card,.15,{BackgroundColor3=Accent})
+            end)
+        end
+        local panel = New("Frame",{Size=UDim2.new(1,0,0,88), BackgroundColor3=C_PANEL, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,12), Parent=panel})
+        New("TextLabel",{Position=UDim2.new(0,14,0,8), Size=UDim2.new(1,-28,0,18), BackgroundTransparency=1,
+            Text=pickWord or "Pick A Script.", Font=Enum.Font.GothamBold, TextSize=14, TextColor3=C_TEXT,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=panel})
+        selLabel = New("TextLabel",{Position=UDim2.new(0,14,0,26), Size=UDim2.new(1,-28,0,18), BackgroundTransparency=1,
+            Text="Nothing selected", Font=Enum.Font.Gotham, TextSize=11, TextColor3=C_SUB,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=panel})
+        local ex = New("TextButton",{Position=UDim2.new(0,14,1,-44), Size=UDim2.new(1,-28,0,34), BackgroundColor3=Accent,
+            Text=">  Execute", Font=Enum.Font.GothamBold, TextSize=14, TextColor3=C_TEXT, AutoButtonColor=false, Parent=panel})
+        New("UICorner",{CornerRadius=UDim.new(0,10), Parent=ex})
+        Reg(ex,"BackgroundColor3")
+        Con(ex.MouseButton1Click, function()
+            if current then
+                Notify("🐾 MEOWL HUB","Executing: "..current.name)
+                task.spawn(function() pcall(current.run) end)
+            else
+                Notify("🐾 MEOWL HUB","Pick one first 🐾")
+            end
+        end)
+    end
+
+    --================================================================--
+    -- 🏠 HOME
+    --================================================================--
+    do
+        local pg = MakeTab("🏠","Home")
+
+        local prof = New("Frame",{Size=UDim2.new(1,0,0,148), BackgroundColor3=C_PANEL, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,14), Parent=prof})
+        Reg(New("UIStroke",{Thickness=1.5, Parent=prof}),"Color")
+
+        local avFrame = New("Frame",{Position=UDim2.new(0,14,0,14), Size=UDim2.new(0,116,0,116),
+            BackgroundColor3=Accent, BackgroundTransparency=0.7, Parent=prof})
+        New("UICorner",{CornerRadius=UDim.new(0,14), Parent=avFrame})
+        Reg(avFrame,"BackgroundColor3")
+        local av = New("ImageLabel",{Position=UDim2.new(0,3,0,3), Size=UDim2.new(1,-6,1,-6),
+            BackgroundColor3=C_CARD, Parent=avFrame})
+        New("UICorner",{CornerRadius=UDim.new(0,12), Parent=av})
+        pcall(function() av.Image = Players:GetUserThumbnailAsync(LP.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size180x180) end)
+
+        New("TextLabel",{Position=UDim2.new(0,140,0,10), Size=UDim2.new(1,-154,0,26), BackgroundTransparency=1,
+            Text=LP.DisplayName, Font=Enum.Font.GothamBold, TextSize=22, TextColor3=C_TEXT,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=prof})
+        New("TextLabel",{Position=UDim2.new(0,140,0,36), Size=UDim2.new(1,-154,0,18), BackgroundTransparency=1,
+            Text="@"..LP.Name, Font=Enum.Font.Gotham, TextSize=13, TextColor3=C_SUB,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=prof})
+        local yrs = math.floor(LP.AccountAge/36.5)/10
+        New("TextLabel",{Position=UDim2.new(0,140,0,58), Size=UDim2.new(1,-154,0,18), BackgroundTransparency=1,
+            Text="ID "..LP.UserId.."  -  Account Age: "..LP.AccountAge.." days ("..yrs.." yrs)",
+            Font=Enum.Font.Gotham, TextSize=11, TextColor3=C_SUB, TextXAlignment=Enum.TextXAlignment.Left, Parent=prof})
+        New("TextLabel",{Position=UDim2.new(0,140,0,78), Size=UDim2.new(1,-154,0,18), BackgroundTransparency=1,
+            Text="Executor: "..EXECUTOR, Font=Enum.Font.Gotham, TextSize=11, TextColor3=C_SUB,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=prof})
+        New("TextLabel",{Position=UDim2.new(0,140,0,100), Size=UDim2.new(1,-154,0,22), BackgroundTransparency=1,
+            Text="Rank: "..Rank(), Font=Enum.Font.GothamBold, TextSize=14, TextColor3=Accent,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=prof})
+
+        local badge = New("Frame",{AnchorPoint=Vector2.new(1,0), Position=UDim2.new(1,-14,0,14),
+            Size=UDim2.new(0,0,0,0), AutomaticSize=Enum.AutomaticSize.X, BackgroundColor3=Accent, Parent=prof})
+        New("UICorner",{CornerRadius=UDim.new(0,8), Parent=badge})
+        Reg(badge,"BackgroundColor3")
+        New("UIPadding",{PaddingLeft=UDim.new(0,10), PaddingRight=UDim.new(0,10), PaddingTop=UDim.new(0,4), PaddingBottom=UDim.new(0,4), Parent=badge})
+        New("TextLabel",{Size=UDim2.new(0,0,0,18), AutomaticSize=Enum.AutomaticSize.X, BackgroundTransparency=1,
+            Text=Rank(), Font=Enum.Font.GothamBold, TextSize=11, TextColor3=C_TEXT, Parent=badge})
+
+        local gameName = "Unknown Game"
+        pcall(function() gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name end)
+        local gc = New("Frame",{Size=UDim2.new(1,0,0,120), BackgroundColor3=C_PANEL, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,14), Parent=gc})
+        local gi = New("ImageLabel",{Position=UDim2.new(0,14,0,14), Size=UDim2.new(0,92,0,92),
+            BackgroundColor3=C_CARD, Image="rbxthumb://type=GameIcon&id="..game.GameId.."&w=150&h=150", Parent=gc})
+        New("UICorner",{CornerRadius=UDim.new(0,12), Parent=gi})
+        New("TextLabel",{Position=UDim2.new(0,116,0,10), Size=UDim2.new(1,-132,0,44), BackgroundTransparency=1,
+            Text="Game: "..gameName, Font=Enum.Font.GothamBold, TextSize=15, TextColor3=C_TEXT,
+            TextXAlignment=Enum.TextXAlignment.Left, TextWrapped=true, Parent=gc})
+        New("TextLabel",{Position=UDim2.new(0,116,0,56), Size=UDim2.new(1,-132,0,16), BackgroundTransparency=1,
+            Text="PlaceId: "..game.PlaceId, Font=Enum.Font.Gotham, TextSize=11, TextColor3=C_SUB,
+            TextXAlignment=Enum.TextXAlignment.Left, Parent=gc})
+        New("TextLabel",{Position=UDim2.new(0,116,0,74), Size=UDim2.new(1,-132,0,16), BackgroundTransparency=1,
+            Text="UniverseId: "..game.GameId.."  -  Players: "..#Players:GetPlayers().."/"..Players.MaxPlayers,
+            Font=Enum.Font.Gotham, TextSize=11, TextColor3=C_SUB, TextXAlignment=Enum.TextXAlignment.Left, Parent=gc})
+
+        local qRow = New("Frame",{Size=UDim2.new(1,0,0,44), BackgroundTransparency=1, Parent=pg})
+        New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal, Padding=UDim.new(0,8), Parent=qRow})
+        local function QuickBtn(text, cb, col)
+            local b = New("TextButton",{Size=UDim2.new(1,0,1,0), BackgroundColor3=col or C_CARD,
+                Text=text, Font=Enum.Font.GothamBold, TextSize=12, TextColor3=C_TEXT, AutoButtonColor=false, Parent=qRow})
+            New("UICorner",{CornerRadius=UDim.new(0,10), Parent=b})
+            Con(b.MouseButton1Click, function() pcall(cb) end)
+            return b
+        end
+        QuickBtn("Discord", function() setclip(DISCORD) Notify("🐾 MEOWL HUB","Discord copied! 🐱") end, Accent)
+        QuickBtn("Rejoin", function() pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LP) end) end)
+        QuickBtn("Server Hop", function()
+            Notify("🌐 Server Hop","Finding server...")
+            task.spawn(function()
+                local ok, data = pcall(function()
+                    return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+                end)
+                if ok and data and data.data then
+                    for _,s in ipairs(data.data) do
+                        if s.playing < s.maxPlayers and s.id ~= game.JobId then
+                            TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, LP) return
+                        end
+                    end
+                end
+                Notify("🌐 Server Hop","Failed 😿")
+            end)
+        end)
+        QuickBtn("FPS Boost", function()
+            pcall(function()
+                Lighting.GlobalShadows = false Lighting.FogEnd = 9e9
+                settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+                for _,v in ipairs(workspace:GetDescendants()) do
+                    if v:IsA("ParticleEmitter") or v:IsA("Trail") then v.Enabled = false end
+                end
+            end)
+            Notify("📈 FPS Boost","Done! 🚀")
+        end)
+
+        AddLabel(pg,"Feedback (goes to the owner):")
+        local fb = AddBox(pg,"Type your feedback here...")
+        AddBtn(pg,"Send Feedback", function()
+            if fb.Text == "" then Notify("🐾 MEOWL HUB","Type something first 🐾") return end
+            if WEBHOOK_URL ~= "" then
+                HttpReq({Url=WEBHOOK_URL, Method="POST", Headers={["Content-Type"]="application/json"},
+                    Body=HttpService:JSONEncode({content="**Feedback** from **"..LP.Name.."**: "..fb.Text})})
+                Notify("🐾 MEOWL HUB","Feedback sent! Thanks 🐱")
+            else
+                setclip("FEEDBACK from "..LP.Name..": "..fb.Text.."  → send in "..DISCORD)
+                Notify("🐾 MEOWL HUB","Copied! Paste it in the Discord 💬")
+            end
+            fb.Text = ""
+        end)
+
+        AddLabel(pg,"Update Log:")
+        local ul = New("Frame",{Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y, BackgroundColor3=C_PANEL, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,14), Parent=ul})
+        New("TextLabel",{Position=UDim2.new(0,14,0,10), Size=UDim2.new(1,-28,0,0), AutomaticSize=Enum.AutomaticSize.Y,
+            BackgroundTransparency=1, TextWrapped=true, TextXAlignment=Enum.TextXAlignment.Left,
+            TextYAlignment=Enum.TextYAlignment.Top, Font=Enum.Font.Gotham, TextSize=12, TextColor3=C_SUB, Parent=ul,
+            Text="V10 (current)
++ Cat key system 🐱
++ Dark VHub-style GUI with glow
++ Resizable + draggable + animated
++ 20 Scripts / 15 Hubs / 15 Games
++ Player tools (TP + Spectate + Goto + Bring)
++ 15 Emotes & dances
++ Skin / Morph system (works!)
++ 10 Troll tools
++ Bypass system
++ Universe AI chat 🌌 (Coming Soon!)
++ Cloud scripts ☁️
++ Music player 🎵 (20 songs)
++ Premium + Owner panel 👑
++ Aimbot, ESP, Hitbox expander
++ AutoFarm, AutoClick, GodMode
++ BoxESP, Tracers, Chams, NameESP
++ FPS Boost, Server Hop, Rejoin
++ Rainbow GUI mode
++ Cat Rain effect 🐱☔
++ Cool animations & particles
+
+Credits: meowlsoul_67 & Superman72657"})
+        New("UIPadding",{PaddingBottom=UDim.new(0,12), Parent=ul})
+    end
+
+    --================================================================--
+    -- ⚡ EXECUTOR
+    --================================================================--
+    do
+        local pg = MakeTab("⚡","Executor")
+        AddLabel(pg,"Meowl Executor - paste any Lua script:")
+        local code = New("TextBox",{Size=UDim2.new(1,0,0,260), BackgroundColor3=C_PANEL, Text="",
+            PlaceholderText='print("Meow! 🐱")
+
+-- Type or paste your script here!
+-- Press Execute to run it', PlaceholderColor3=C_SUB, Font=Enum.Font.Code, TextSize=13,
+            TextColor3=C_TEXT, MultiLine=true, ClearTextOnFocus=false, TextXAlignment=Enum.TextXAlignment.Left,
+            TextYAlignment=Enum.TextYAlignment.Top, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,14), Parent=code})
+        New("UIPadding",{PaddingTop=UDim.new(0,10), PaddingLeft=UDim.new(0,12), Parent=code})
+
+        local btnRow = New("Frame",{Size=UDim2.new(1,0,0,42), BackgroundTransparency=1, Parent=pg})
+        New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal, Padding=UDim.new(0,8), Parent=btnRow})
+        local function RowBtn(text, cb, col)
+            local b = New("TextButton",{Size=UDim2.new(1,0,1,0), BackgroundColor3=col or C_CARD,
+                Text=text, Font=Enum.Font.GothamBold, TextSize=12, TextColor3=C_TEXT, AutoButtonColor=false, Parent=btnRow})
+            New("UICorner",{CornerRadius=UDim.new(0,10), Parent=b})
+            Con(b.MouseButton1Click, function() pcall(cb) end)
+            return b
+        end
+        RowBtn("Execute", function()
+            if code.Text == "" then Notify("⚡ Executor","Box is empty 🐾") return end
+            local fn, err = loadstring(code.Text)
+            if not fn then Notify("⚡ Executor","Syntax error 😿: "..tostring(err)) return end
+            task.spawn(function()
+                local ok, e = pcall(fn)
+                if ok then Notify("⚡ Executor","Executed ✅") else Notify("⚡ Executor","Error 😿: "..tostring(e)) end
+            end)
+        end, Accent)
+        RowBtn("Paste", function()
+            pcall(function() code.Text = (getclipboard and getclipboard()) or code.Text end)
+        end)
+        RowBtn("Clear", function() code.Text = "" end)
+        RowBtn("Save", function()
+            pcall(function()
+                if writefile then writefile("MeowlHub_Script.lua", code.Text) end
+                Notify("⚡ Executor","Saved! 💾")
+            end)
+        end)
+    end
+
+    --================================================================--
+    -- 📜 SCRIPTS (20)
+    --================================================================--
+    do
+        local pg = MakeTab("📜","Scripts")
+        AddLabel(pg,"20 built-in scripts - pick a card, press Execute:")
+        local function TogHum(prop, onV, offV, flag, label)
+            Flags[flag] = not Flags[flag]
+            local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+            if hum then pcall(function() hum[prop] = Flags[flag] and onV or offV end) end
+            Notify("📜 Scripts", label..(Flags[flag] and ": ON ✅" or ": OFF ❌"))
+        end
+        AddPickerGrid(pg, {
+            {name="Infinite Yield", icon="⚡", run=function() RunURL("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source") end},
+            {name="Fly (Toggle)", icon="🕊️", run=function()
+                Flags.Fly = not Flags.Fly
+                local char, hrp = LP.Character, LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                if Flags.Fly and hrp and hum then
+                    FlyBV = New("BodyVelocity",{MaxForce=Vector3.new(1e5,1e5,1e5), Velocity=Vector3.zero, Parent=hrp})
+                    FlyBG = New("BodyGyro",{MaxTorque=Vector3.new(1e5,1e5,1e5), P=9e4, CFrame=hrp.CFrame, Parent=hrp})
+                    hum.PlatformStand = true
+                    FlyCon = Con(RunService.RenderStepped, function()
+                        if not Flags.Fly or not hrp.Parent then return end
+                        FlyBV.Velocity = Cam.CFrame:VectorToWorldSpace(hum.MoveDirection) * 60
+                        FlyBG.CFrame = Cam.CFrame
+                    end)
+                    Notify("🕊️ Fly","ON - move to fly!")
+                else
+                    if FlyCon then FlyCon:Disconnect() end
+                    if FlyBV then FlyBV:Destroy() end if FlyBG then FlyBG:Destroy() end
+                    if hum then hum.PlatformStand = false end
+                    Notify("🕊️ Fly","OFF")
+                end
+            end},
+            {name="Noclip (Toggle)", icon="👻", run=function()
+                Flags.Noclip = not Flags.Noclip
+                if Flags.Noclip then
+                    NoclipCon = Con(RunService.Stepped, function()
+                        local c = LP.Character
+                        if c then for _,p in ipairs(c:GetDescendants()) do
+                            if p:IsA("BasePart") then p.CanCollide = false end
+                        end end
+                    end)
+                elseif NoclipCon then NoclipCon:Disconnect() end
+                Notify("👻 Noclip", Flags.Noclip and "ON" or "OFF")
+            end},
+            {name="Speed x4 (Toggle)", icon="💨", run=function() TogHum("WalkSpeed",64,16,"Speed","💨 Speed") end},
+            {name="High Jump (Toggle)", icon="🦘", run=function()
+                Flags.Jump = not Flags.Jump
+                local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    pcall(function() hum.JumpPower = Flags.Jump and 120 or 50 end)
+                    pcall(function() hum.JumpHeight = Flags.Jump and 30 or 7.2 end)
+                end
+                Notify("🦘 High Jump", Flags.Jump and "ON" or "OFF")
+            end},
+            {name="ESP Players (Toggle)", icon="🔦", run=function()
+                Flags.ESP = not Flags.ESP
+                for _,p in ipairs(Players:GetPlayers()) do
+                    if p ~= LP and p.Character then
+                        local old1, old2 = p.Character:FindFirstChild("MeowlESP"), p.Character:FindFirstChild("MeowlTag")
+                        if old1 then old1:Destroy() end if old2 then old2:Destroy() end
+                        if Flags.ESP then
+                            New("Highlight",{Name="MeowlESP", FillColor3=Accent, FillTransparency=0.55,
+                                OutlineColor3=Color3.new(1,1,1), Parent=p.Character})
+                            local head = p.Character:FindFirstChild("Head")
+                            if head then
+                                local bb = New("BillboardGui",{Name="MeowlTag", Size=UDim2.new(0,140,0,26),
+                                    StudsOffset=Vector3.new(0,2.6,0), AlwaysOnTop=true, Adornee=head, Parent=p.Character})
+                                New("TextLabel",{Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, Text=p.DisplayName,
+                                    TextColor3=Color3.new(1,1,1), TextStrokeTransparency=0.4,
+                                    Font=Enum.Font.GothamBold, TextSize=12, Parent=bb})
+                            end
+                        end
+                    end
+                end
+                Notify("🔦 ESP", Flags.ESP and "ON" or "OFF")
+            end},
+            {name="Click TP Tool", icon="🖱️", run=function()
+                local tool = New("Tool",{Name="🐾 Meowl ClickTP", RequiresHandle=false})
+                Con(tool.Activated, function()
+                    local m = LP:GetMouse()
+                    if m and m.Hit and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                        LP.Character.HumanoidRootPart.CFrame = m.Hit + Vector3.new(0,3,0)
+                    end
+                end)
+                tool.Parent = LP:FindFirstChildOfClass("Backpack")
+                Notify("🖱️ ClickTP","Tool added - equip & tap to teleport!")
+            end},
+            {name="Anti-AFK (Toggle)", icon="😴", run=function()
+                Flags.AntiAFK = not Flags.AntiAFK
+                if Flags.AntiAFK then
+                    AntiAFKCon = Con(LP.Idled, function()
+                        local vu = game:GetService("VirtualUser")
+                        vu:CaptureController() vu:ClickButton2(Vector2.new())
+                    end)
+                elseif AntiAFKCon then AntiAFKCon:Disconnect() end
+                Notify("😴 Anti-AFK", Flags.AntiAFK and "ON" or "OFF")
+            end},
+            {name="Fullbright (Toggle)", icon="💡", run=function()
+                Flags.Fullbright = not Flags.Fullbright
+                if Flags.Fullbright then
+                    Lighting.Brightness, Lighting.ClockTime, Lighting.FogEnd = 2, 14, 1e6
+                    Lighting.GlobalShadows = false
+                    Lighting.OutdoorAmbient = Color3.fromRGB(128,128,128)
+                else
+                    Lighting.GlobalShadows = true
+                end
+                Notify("💡 Fullbright", Flags.Fullbright and "ON" or "OFF")
+            end},
+            {name="Server Hop", icon="🌐", run=function()
+                Notify("🌐 Server Hop","Finding a new server...")
+                task.spawn(function()
+                    local ok, data = pcall(function()
+                        return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+                    end)
+                    if ok and data and data.data then
+                        for _,s in ipairs(data.data) do
+                            if s.playing < s.maxPlayers and s.id ~= game.JobId then
+                                TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, LP) return
+                            end
+                        end
+                    end
+                    Notify("🌐 Server Hop","Failed 😿")
+                end)
+            end},
+            {name="God Mode (Toggle)", icon="🛡️", run=function()
+                Flags.GodMode = not Flags.GodMode
+                local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    pcall(function()
+                        if Flags.GodMode then
+                            hum.MaxHealth = 1e9 hum.Health = 1e9
+                        end
+                    end)
+                end
+                Notify("🛡️ God Mode", Flags.GodMode and "ON" or "OFF")
+            end},
+            {name="Auto Click (Toggle)", icon="🖱️⚡", run=function()
+                Flags.AutoClick = not Flags.AutoClick
+                if Flags.AutoClick then
+                    AutoClickCon = Con(RunService.RenderStepped, function()
+                        pcall(function()
+                            local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+                            if tool then tool:Activate() end
+                        end)
+                    end)
+                elseif AutoClickCon then AutoClickCon:Disconnect() end
+                Notify("🖱️⚡ AutoClick", Flags.AutoClick and "ON" or "OFF")
+            end},
+            {name="Hitbox Expander", icon="📦", run=function()
+                Flags.Hitbox = not Flags.Hitbox
+                for _,p in ipairs(Players:GetPlayers()) do
+                    if p ~= LP and p.Character then
+                        for _,part in ipairs(p.Character:GetDescendants()) do
+                            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                                if Flags.Hitbox then
+                                    part.Size = Vector3.new(10,10,10)
+                                    part.Transparency = 0.7
+                                    part.CanCollide = false
+                                else
+                                    part.Size = Vector3.new(2,2,1)
+                                    part.Transparency = 0
+                                end
+                            end
+                        end
+                    end
+                end
+                Notify("📦 Hitbox", Flags.Hitbox and "EXPANDED ✅" or "RESET")
+            end},
+            {name="BTools (Build Tools)", icon="🧱", run=function()
+                local bt = New("HopperBin",{Name="Move", BinType=Enum.BinType.GameTool, Parent=LP:FindFirstChildOfClass("Backpack")})
+                local bt2 = New("HopperBin",{Name="Clone", BinType=Enum.BinType.Clone, Parent=LP:FindFirstChildOfClass("Backpack")})
+                local bt3 = New("HopperBin",{Name="Hammer", BinType=Enum.BinType.Hammer, Parent=LP:FindFirstChildOfClass("Backpack")})
+                Notify("🧱 BTools","Build tools added! 🛠️")
+            end},
+            {name="No Clip Walls", icon="🧊", run=function()
+                for _,v in ipairs(workspace:GetDescendants()) do
+                    if v:IsA("BasePart") and v.Name:lower():find("wall") then
+                        v.CanCollide = false v.Transparency = 0.5
+                    end
+                end
+                Notify("🧊 NoClip Walls","Walls are now passable! 🚪")
+            end},
+            {name="Gravity Low", icon="🌙", run=function()
+                workspace.Gravity = workspace.Gravity == 196.2 and 50 or 196.2
+                Notify("🌙 Gravity","Set to "..workspace.Gravity)
+            end},
+            {name="Infinite Jump", icon="⬆️", run=function()
+                local infJump = false
+                Con(UIS.InputBegan, function(i)
+                    if i.KeyCode == Enum.KeyCode.Space and not infJump then
+                        infJump = true
+                        pcall(function()
+                            local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+                            if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+                        end)
+                        infJump = false
+                    end
+                end)
+                Notify("⬆️ Infinite Jump","Hold Space to fly up! 🚀")
+            end},
+            {name="Walk On Walls", icon="🧗", run=function()
+                local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    pcall(function() hum:ChangeState(Enum.HumanoidStateType.Climbing) end)
+                end
+                Notify("🧗 Walk On Walls","Activated! 🧗")
+            end},
+            {name="Super Punch", icon="👊", run=function()
+                local tool = New("Tool",{Name="🐾 Super Punch", RequiresHandle=false})
+                Con(tool.Activated, function()
+                    for _,p in ipairs(Players:GetPlayers()) do
+                        if p ~= LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                            local dist = (p.Character.HumanoidRootPart.Position - LP.Character.HumanoidRootPart.Position).Magnitude
+                            if dist < 20 then
+                                p.Character.HumanoidRootPart.Velocity = (p.Character.HumanoidRootPart.Position - LP.Character.HumanoidRootPart.Position).Unit * 500 + Vector3.new(0,200,0)
+                            end
+                        end
+                    end
+                end)
+                tool.Parent = LP:FindFirstChildOfClass("Backpack")
+                Notify("👊 Super Punch","Punch players to launch them! 💥")
+            end},
+            {name="Free Cam", icon="📷", run=function()
+                pcall(function()
+                    local cam = workspace.CurrentCamera
+                    cam.CameraType = Enum.CameraType.Scriptable
+                    local pos = cam.CFrame.Position
+                    Con(UIS.InputBegan, function(i)
+                        if i.KeyCode == Enum.KeyCode.W then pos = pos + cam.CFrame.LookVector * 5 end
+                        if i.KeyCode == Enum.KeyCode.S then pos = pos - cam.CFrame.LookVector * 5 end
+                        cam.CFrame = CFrame.new(pos)
+                    end)
+                end)
+                Notify("📷 Free Cam","Use WASD to move camera! 📸")
+            end},
+            {name="X-Ray (Toggle)", icon="👁️", run=function()
+                Flags.XRay = not Flags.XRay
+                for _,v in ipairs(workspace:GetDescendants()) do
+                    if v:IsA("BasePart") and not v.Parent:FindFirstChildOfClass("Humanoid") then
+                        v.Transparency = Flags.XRay and 0.7 or 0
+                    end
+                end
+                Notify("👁️ X-Ray", Flags.XRay and "ON" or "OFF")
+            end},
+            {name="Remove Fog", icon="🌫️", run=function()
+                Lighting.FogEnd = 1e6
+                Notify("🌫️ Fog","Removed! Clear view ✅")
+            end},
+        })
+    end
+
+    --================================================================--
+    -- 🚀 HUBS (15)
+    --================================================================--
+    do
+        local pg = MakeTab("🚀","Hubs")
+        AddLabel(pg,"15 hubs made by other people (may break if outdated):")
+        local H = {
+            {"Infinite Yield","⚡","https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"},
+            {"CMD-X","💠","https://raw.githubusercontent.com/CMD-X/CMD-X/master/Source"},
+            {"Orca","🐋","https://raw.githubusercontent.com/richie0866/orca/master/public/latest.lua"},
+            {"Domain X","🌐","https://raw.githubusercontent.com/shlexware/DomainX/main/source"},
+            {"Sirius","✨","https://raw.githubusercontent.com/shlexware/Sirius/request/source"},
+            {"V.G Hub","🎮","https://raw.githubusercontent.com/1201for/V.G-Hub/main/V.Ghub"},
+            {"SimpleSpy","🕵️","https://raw.githubusercontent.com/exxtremestuffs/SimpleSpySource/master/SimpleSpy.lua"},
+            {"Turtle Spy","🐢","https://raw.githubusercontent.com/Turtle-Brand/Turtle-Spy/main/source.lua"},
+            {"Unnamed ESP","👁️","https://raw.githubusercontent.com/ic3w0lf22/Unnamed-ESP/master/UnnamedESP.lua"},
+            {"Ez Hub","🧩","https://raw.githubusercontent.com/debug420/Ez-Industries-Launcher-Data/master/Launcher.lua"},
+            {"Owl Hub","🦉","https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"},
+            {"Dark Dex","🔍","https://raw.githubusercontent.com/Babyhamsta/RBLX_DarkDex/main/darkdex.lua"},
+            {"Fates Admin","⚔️","https://raw.githubusercontent.com/fatesc/fates-admin/main/main.lua"},
+            {"Kronos","⏰","https://raw.githubusercontent.com/KronosExploit/Kronos/main/Kronos.lua"},
+            {"Nihon","🗾","https://raw.githubusercontent.com/Acryllic/Nihon/main/Script"},
+        }
+        local items = {}
+        for _,h in ipairs(H) do
+            table.insert(items, {name=h[1], icon=h[2], run=function() RunURL(h[3]) end})
+        end
+        AddPickerGrid(pg, items, "Pick A Hub.")
+    end
+
+    --================================================================--
+    -- 🎮 GAMES (15)
+    --================================================================--
+    do
+        local pg = MakeTab("🎮","Games")
+        AddLabel(pg,"15 famous games - Execute = teleport there:")
+        local G = {
+            {"Brookhaven RP","🏡",4924922222},{"Adopt Me!","🐶",920587237},
+            {"Blox Fruits","⚔️",2753915549},{"Blade Ball","🏐",13772394625},
+            {"Murder Mystery 2","🔪",142823291},{"Pet Simulator X","🐾",6284583030},
+            {"Tower of Hell","🗼",1962086868},{"BedWars","🛏️",6872265039},
+            {"Arsenal","🔫",286090429},{"Piggy","🐷",4623386862},
+            {"Jailbreak","🚔",606849621},{"Doors","🚪",6516141723},
+            {"Rainbow Friends","🌈",7991339063},{"Evade","🏃",9872472334},
+            {"Flee The Facility","🏃‍♂️",893973440},
+        }
+        local items = {}
+        for _,g in ipairs(G) do
+            table.insert(items, {name=g[1], icon=g[2], run=function()
+                Notify("🎮 Games","Teleporting to "..g[1].."...")
+                pcall(function() TeleportService:Teleport(g[3], LP) end)
+            end})
+        end
+        AddPickerGrid(pg, items, "Pick A Game.")
+    end
+
+    --================================================================--
+    -- 👤 PLAYER TOOLS
+    --================================================================--
+    do
+        local pg = MakeTab("👤","Player")
+        local selLbl = AddLabel(pg,"Selected: none 🐾", 14, C_TEXT)
+        local lf = New("Frame",{Size=UDim2.new(1,0,0,180), BackgroundColor3=C_PANEL, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,14), Parent=lf})
+        local ls = New("ScrollingFrame",{Position=UDim2.new(0,8,0,8), Size=UDim2.new(1,-16,1,-16),
+            BackgroundTransparency=1, ScrollBarThickness=4, ScrollBarImageColor3=Accent,
+            CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.Y, Parent=lf})
+        New("UIListLayout",{Padding=UDim.new(0,5), Parent=ls})
+
+        local function RefreshPlayers()
+            for _,c in ipairs(ls:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
+            for _,p in ipairs(Players:GetPlayers()) do
+                if p ~= LP then
+                    local b = New("TextButton",{Size=UDim2.new(1,0,0,34), BackgroundColor3=C_CARD,
+                        Text="   👤 "..p.DisplayName.."  (@"..p.Name..")", Font=Enum.Font.Gotham, TextSize=12,
+                        TextColor3=C_TEXT, TextXAlignment=Enum.TextXAlignment.Left, AutoButtonColor=false, Parent=ls})
+                    New("UICorner",{CornerRadius=UDim.new(0,10), Parent=b})
+                    Con(b.MouseEnter, function() Tw(b,.1,{BackgroundColor3=C_CARD_H}) end)
+                    Con(b.MouseLeave, function() Tw(b,.1,{BackgroundColor3=C_CARD}) end)
+                    Con(b.MouseButton1Click, function()
+                        SelPlayer = p
+                        selLbl.Text = "Selected: "..p.DisplayName.."  (@"..p.Name..")"
+                        Tw(b,.15,{BackgroundColor3=Accent}) task.delay(.4,function() Tw(b,.2,{BackgroundColor3=C_CARD}) end)
+                    end)
+                end
+            end
+        end
+        RefreshPlayers()
+
+        local btnRow = New("Frame",{Size=UDim2.new(1,0,0,42), BackgroundTransparency=1, Parent=pg})
+        New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal, Padding=UDim.new(0,8), Parent=btnRow})
+        local function RowBtn(text, cb, col)
+            local b = New("TextButton",{Size=UDim2.new(1,0,1,0), BackgroundColor3=col or C_CARD,
+                Text=text, Font=Enum.Font.GothamBold, TextSize=11, TextColor3=C_TEXT, AutoButtonColor=false, Parent=btnRow})
+            New("UICorner",{CornerRadius=UDim.new(0,10), Parent=b})
+            Con(b.MouseButton1Click, function() pcall(cb) end)
+            return b
+        end
+        RowBtn("🔄 Refresh", RefreshPlayers)
+        RowBtn("🚀 TP To", function()
+            if SelPlayer and SelPlayer.Character and SelPlayer.Character:FindFirstChild("HumanoidRootPart")
+                and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                LP.Character.HumanoidRootPart.CFrame = SelPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0,2,0)
+                Notify("👤 Player","Teleported to "..SelPlayer.DisplayName.." 🚀")
+            else Notify("👤 Player","Select a player first 🐾") end
+        end, Accent)
+        RowBtn("👁️ Spectate", function()
+            if SelPlayer and SelPlayer.Character then
+                local h = SelPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if h then Cam.CameraSubject = h Notify("👁️ Spectate","Now watching "..SelPlayer.DisplayName) end
+            else Notify("👤 Player","Select a player first 🐾") end
+        end)
+        RowBtn("🙈 Stop", function()
+            local h = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+            if h then Cam.CameraSubject = h Notify("👁️ Spectate","Back to you 🐱") end
+        end)
+
+        local btnRow2 = New("Frame",{Size=UDim2.new(1,0,0,42), BackgroundTransparency=1, Parent=pg})
+        New("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal, Padding=UDim.new(0,8), Parent=btnRow2})
+        RowBtn("📋 Copy Name", function()
+            if SelPlayer then setclip(SelPlayer.Name) Notify("👤 Player","Copied @"..SelPlayer.Name)
+            else Notify("👤 Player","Select a player first 🐾") end
+        end)
+        RowBtn("🧲 Bring To Me", function()
+            if SelPlayer and SelPlayer.Character and SelPlayer.Character:FindFirstChild("HumanoidRootPart")
+                and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                SelPlayer.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame + Vector3.new(0,0,3)
+                Notify("👤 Player","Brought "..SelPlayer.DisplayName.." to you! 🧲")
+            else Notify("👤 Player","Select a player first 🐾") end
+        end)
+        RowBtn("🎯 Aimbot (Toggle)", function()
+            Flags.Aimbot = not Flags.Aimbot
+            Notify("🎯 Aimbot", Flags.Aimbot and "ON - hold right click to lock on!" or "OFF")
+            if Flags.Aimbot then
+                Con(UIS.InputBegan, function(i)
+                    if i.UserInputType == Enum.UserInputType.MouseButton2 then
+                        for _,p in ipairs(Players:GetPlayers()) do
+                            if p ~= LP and p.Character and p.Character:FindFirstChild("Head") then
+                                local dist = (p.Character.Head.Position - LP.Character.HumanoidRootPart.Position).Magnitude
+                                if dist < 200 then
+                                    Cam.CFrame = CFrame.new(Cam.CFrame.Position, p.Character.Head.Position)
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end)
+        RowBtn("📡 Tracers (Toggle)", function()
+            Flags.Tracers = not Flags.Tracers
+            Notify("📡 Tracers", Flags.Tracers and "ON" or "OFF")
+        end)
+    end
+
+    --================================================================--
+    -- 🎭 ANIMATIONS (15)
+    --================================================================--
+    do
+        local pg = MakeTab("🎭","Animations")
+        AddLabel(pg,"15 dances & emotes (tap to play):")
+        local function StopEmotes()
+            for _,t in ipairs(PlayingTracks) do pcall(function() t:Stop() end) end
+            PlayingTracks = {}
+        end
+        local Emotes = {
+            {"Wave","👋","507770239"},{"Point","👉","507770453"},{"Cheer","🎉","507770677"},
+            {"Laugh","😂","507770818"},{"Dance 1","🕺","507771019"},{"Dance 2","💃","507776043"},
+            {"Dance 3","🪩","507777268"},{"Stadium","🙌","3360689364"},{"Hello","🤝","3344650532"},
+            {"Godlike","😇","3337966527"},{"Floss","🦷","5917459365"},{"Hype","📣","5917570207"},
+            {"Twist","🌀","4689365577"},{"Bone Chillin","🥶","4940572710"},{"Dizzy","💫","3361426436"},
+        }
+        local grid = New("Frame",{Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y,
+            BackgroundTransparency=1, Parent=pg})
+        New("UIGridLayout",{CellSize=UDim2.new(1/3,-7,0,44), CellPadding=UDim2.new(0,8,0,8),
+            SortOrder=Enum.SortOrder.LayoutOrder, Parent=grid})
+        for _,e in ipairs(Emotes) do
+            local b = New("TextButton",{BackgroundColor3=C_CARD, Text=e[2].." "..e[1], Font=Enum.Font.GothamBold,
+                TextSize=11, TextColor3=C_TEXT, AutoButtonColor=false, Parent=grid})
+            New("UICorner",{CornerRadius=UDim.new(0,10), Parent=b})
+            Con(b.MouseEnter, function() Tw(b,.1,{BackgroundColor3=C_CARD_H}) end)
+            Con(b.MouseLeave, function() Tw(b,.1,{BackgroundColor3=C_CARD}) end)
+            Con(b.MouseButton1Click, function()
+                local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+                local anim = hum and hum:FindFirstChildOfClass("Animator")
+                if not anim then Notify("🎭 Emotes","No character 😿") return end
+                local a = Instance.new("Animation")
+                a.AnimationId = "rbxassetid://"..e[3]
+                local ok, track = pcall(function() return anim:LoadAnimation(a) end)
+                if ok and track then
+                    StopEmotes()
+                    track.Looped = true track:Play()
+                    table.insert(PlayingTracks, track)
+                    Notify("🎭 Emotes", e[1].." playing!")
+                else
+                    Notify("🎭 Emotes","This game blocked it 😿")
+                end
+            end)
+        end
+        AddBtn(pg,"⏹️ Stop All Animations", StopEmotes)
+    end
+
+    --================================================================--
+    -- 👕 SKIN / MORPH
+    --================================================================--
+    do
+        local pg = MakeTab("👕","Skins")
+        AddLabel(pg,"Morph into ANY player's avatar (client-side in FE games):")
+        local box = AddBox(pg,"Enter username to morph into... (e.g. builderman)")
+        local function Morph(name)
+            local ok, uid = pcall(function() return Players:GetUserIdFromNameAsync(name) end)
+            if not ok or not uid then Notify("👕 Skins","User not found 😿") return end
+            local ok2, desc = pcall(function() return Players:GetHumanoidDescriptionFromUserId(uid) end)
+            local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+            if ok2 and desc and hum then
+                pcall(function() hum:ApplyDescription(desc) end)
+                Notify("👕 Skins","Morphed into "..name.." 🐱")
+            else
+                Notify("👕 Skins","Morph failed 😿")
+            end
+        end
+        AddBtn(pg,"👕 Morph!", function() if box.Text ~= "" then Morph(box.Text) end end, Accent)
+        AddBtn(pg,"👕 Morph Into Selected Player", function()
+            if SelPlayer then Morph(SelPlayer.Name) else Notify("👕 Skins","Select someone in Player tab first") end
+        end)
+        AddBtn(pg,"🔄 Reset My Avatar", function() Morph(LP.Name) end)
+        AddLabel(pg,"Note: morphs show on your screen. Other players see them only in non-FE games.")
+    end
+
+    --================================================================--
+    -- 😈 TROLL (10)
+    --================================================================--
+    do
+        local pg = MakeTab("😈","Troll")
+        AddLabel(pg,"10 troll tools (client-side):")
+        AddBtn(pg,"🌪️ Fling (walk into people!)", function()
+            Flags.Fling = not Flags.Fling
+            local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+            if Flags.Fling and hrp then
+                FlingBV = New("BodyAngularVelocity",{AngularVelocity=Vector3.new(0,99999,0),
+                    MaxTorque=Vector3.new(0,math.huge,0), P=math.huge, Parent=hrp})
+                Notify("🌪️ Fling","ON - walk into players!")
+            else
+                if FlingBV then FlingBV:Destroy() end
+                Notify("🌪️ Fling","OFF")
+            end
+        end)
+        AddBtn(pg,"🌀 Spin Mode", function()
+            Flags.Spin = not Flags.Spin
+            local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+            if Flags.Spin and hrp then
+                SpinBV = New("BodyAngularVelocity",{AngularVelocity=Vector3.new(0,60,0),
+                    MaxTorque=Vector3.new(0,math.huge,0), P=math.huge, Parent=hrp})
+            elseif SpinBV then SpinBV:Destroy() end
+            Notify("🌀 Spin", Flags.Spin and "ON" or "OFF")
+        end)
+        local spamBox = AddBox(pg,"Spam text... (empty = Meowl Hub ad)")
+        AddBtn(pg,"💬 Chat Spammer", function()
+            Flags.Spam = not Flags.Spam
+            Notify("💬 Spammer", Flags.Spam and "ON" or "OFF")
+            task.spawn(function()
+                while Flags.Spam do
+                    local msg = spamBox.Text ~= "" and spamBox.Text or "🐾 MEOWL HUB V10 | discord.gg/7YAEYT6tT 🐾"
+                    Chat(msg) task.wait(2.5)
+                end
+            end)
+        end)
+        AddBtn(pg,"📶 Fake Lag", function()
+            Flags.FakeLag = not Flags.FakeLag
+            Notify("📶 Fake Lag", Flags.FakeLag and "ON" or "OFF")
+            task.spawn(function()
+                while Flags.FakeLag do
+                    local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp then hrp.Anchored = true end
+                    task.wait(0.12 + math.random()*0.2)
+                    if hrp and hrp.Parent then hrp.Anchored = false end
+                    task.wait(0.1)
+                end
+            end)
+        end)
+        AddBtn(pg,"👻 Invisible (client)", function()
+            Flags.Invis = not Flags.Invis
+            local char = LP.Character
+            if char then
+                if Flags.Invis then
+                    InvisStore = {}
+                    for _,p in ipairs(char:GetDescendants()) do
+                        if p:IsA("BasePart") then InvisStore[p]=p.Transparency p.Transparency=1
+                        elseif p:IsA("Decal") then InvisStore[p]=p.Transparency p.Transparency=1 end
+                    end
+                else
+                    for p,t in pairs(InvisStore) do pcall(function() p.Transparency=t end) end
+                end
+            end
+            Notify("👻 Invisible", Flags.Invis and "ON" or "OFF")
+        end)
+        AddBtn(pg,"🧲 Follow Selected Player", function()
+            Flags.Follow = not Flags.Follow
+            Notify("🧲 Follow", Flags.Follow and "ON" or "OFF")
+            task.spawn(function()
+                while Flags.Follow do
+                    if SelPlayer and SelPlayer.Character and SelPlayer.Character:FindFirstChild("HumanoidRootPart")
+                        and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                        LP.Character.HumanoidRootPart.CFrame =
+                            SelPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,3)
+                    end
+                    RunService.Heartbeat:Wait()
+                end
+            end)
+        end)
+        AddBtn(pg,"🔊 Earrape (loud sound)", function()
+            local s = New("Sound",{Name="Earrape", SoundId="rbxassetid://142376088", Volume=10, Parent=SoundService})
+            pcall(function() s:Play() end)
+            Notify("🔊 Earrape","Playing loud sound! 🔥")
+            task.delay(5, function() pcall(function() s:Destroy() end) end)
+        end)
+        AddBtn(pg,"🎈 Big Head (client)", function()
+            local head = LP.Character and LP.Character:FindFirstChild("Head")
+            if head then head.Size = Vector3.new(10,10,10) end
+            Notify("🎈 Big Head","Done! 🎈")
+        end)
+        AddBtn(pg,"🪞 Mirror Mode", function()
+            local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.pi, 0) end
+            Notify("🪞 Mirror Mode","Flipped! 🪞")
+        end)
+        AddBtn(pg,"💥 Annoy Sound Spam", function()
+            task.spawn(function()
+                for i = 1, 20 do
+                    local s = New("Sound",{SoundId="rbxassetid://142376088", Volume=5, Parent=SoundService})
+                    pcall(function() s:Play() end)
+                    task.wait(0.3)
+                    pcall(function() s:Destroy() end)
+                end
+            end)
+            Notify("💥 Annoy","Spamming sounds! 💥")
+        end)
+    end
+
+    --================================================================--
+    -- 🔓 BYPASS
+    --================================================================--
+    do
+        local pg = MakeTab("🔓","Bypass")
+        AddLabel(pg,"Bypass system (client-side protections):")
+        AddBtn(pg,"😴 Anti-AFK Bypass", function()
+            Flags.AntiAFK = not Flags.AntiAFK
+            if Flags.AntiAFK then
+                AntiAFKCon = Con(LP.Idled, function()
+                    local vu = game:GetService("VirtualUser")
+                    vu:CaptureController() vu:ClickButton2(Vector2.new())
+                end)
+            elseif AntiAFKCon then AntiAFKCon:Disconnect() end
+            Notify("🔓 Bypass","Anti-AFK "..(Flags.AntiAFK and "ON" or "OFF"))
+        end)
+        AddBtn(pg,"🕳️ Anti-Void Bypass", function()
+            Flags.AntiVoid = not Flags.AntiVoid
+            Notify("🔓 Bypass","Anti-Void "..(Flags.AntiVoid and "ON" or "OFF"))
+            if Flags.AntiVoid then
+                task.spawn(function()
+                    local safe = nil
+                    while Flags.AntiVoid do
+                        local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                        if hrp then
+                            if hrp.Position.Y > workspace.FallenPartsDestroyHeight + 20 then safe = hrp.CFrame
+                            elseif safe then hrp.CFrame = safe Notify("🕳️ Anti-Void","Saved you! 🐱") end
+                        end
+                        task.wait(0.3)
+                    end
+                end)
+            end
+        end)
+        AddBtn(pg,"📈 FPS Boost", function()
+            pcall(function()
+                Lighting.GlobalShadows = false Lighting.FogEnd = 9e9
+                settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+                for _,v in ipairs(workspace:GetDescendants()) do
+                    if v:IsA("ParticleEmitter") or v:IsA("Trail") then v.Enabled = false end
+                end
+            end)
+            Notify("📈 FPS Boost","Done! 🚀")
+        end)
+        AddBtn(pg,"🤸 Anti-Ragdoll Bypass", function()
+            Flags.AntiRagdoll = not Flags.AntiRagdoll
+            local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                pcall(function()
+                    hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, not Flags.AntiRagdoll)
+                    hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, not Flags.AntiRagdoll)
+                end)
+            end
+            Notify("🔓 Bypass","Anti-Ragdoll "..(Flags.AntiRagdoll and "ON" or "OFF"))
+        end)
+        AddBtn(pg,"🛡️ Anti-Fling Bypass", function()
+            Flags.AntiFling = not Flags.AntiFling
+            Notify("🔓 Bypass","Anti-Fling "..(Flags.AntiFling and "ON" or "OFF"))
+            if Flags.AntiFling then
+                task.spawn(function()
+                    while Flags.AntiFling do
+                        local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                        if hrp and hrp.Velocity.Magnitude > 180 then hrp.Velocity = Vector3.zero end
+                        RunService.Heartbeat:Wait()
+                    end
+                end)
+            end
+        end)
+        AddBtn(pg,"🪑 Disable Sit Bypass", function()
+            Flags.NoSit = not Flags.NoSit
+            local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+            if hum then pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Seated, not Flags.NoSit) end) end
+            Notify("🔓 Bypass","Disable Sit "..(Flags.NoSit and "ON" or "OFF"))
+        end)
+    end
+
+    --================================================================--
+    -- 🌌 UNIVERSE AI CHAT
+    --================================================================--
+    do
+        local pg = MakeTab("🌌","Universe")
+        AddLabel(pg,"🌌 Universe AI - chat with MeowlAI:")
+        local log = New("ScrollingFrame",{Size=UDim2.new(1,0,0,220), BackgroundColor3=C_PANEL,
+            ScrollBarThickness=4, ScrollBarImageColor3=Accent, CanvasSize=UDim2.new(0,0,0,0),
+            AutomaticCanvasSize=Enum.AutomaticSize.Y, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,14), Parent=log})
+        New("UIListLayout",{Padding=UDim.new(0,4), Parent=log})
+        New("UIPadding",{PaddingTop=UDim.new(0,6), PaddingLeft=UDim.new(0,8), PaddingRight=UDim.new(0,8), Parent=log})
+        local function AddMsg(who, txt, col)
+            New("TextLabel",{Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y, BackgroundTransparency=1,
+                Text=who..": "..txt, TextColor3=col, Font=Enum.Font.Gotham, TextSize=12, TextWrapped=true,
+                TextXAlignment=Enum.TextXAlignment.Left, Parent=log})
+            log.CanvasPosition = Vector2.new(0, math.huge)
+        end
+        AddMsg("🌌 MeowlAI","Meow! I'm the hub AI 🐱 Ask me anything!", C_SUB)
+        local input = AddBox(pg,"Ask MeowlAI something...")
+        local Replies = {
+            "Meow! 🐱 Great question - the answer is obviously cats.",
+            "🌌 Stay pawsitive, "..LP.DisplayName.."!",
+            "Purrr... processing... done! ✅ Ask the Discord too: discord.gg/7YAEYT6tT",
+            "I rate that question 10/10 whiskers 🐾",
+            "Beep boop meow 🤖🐱 Interesting!",
+            "MeowlAI tip: the 🐱 button hides the hub... but I'm always watching 👀",
+            "As a cat AI, I demand treats as payment 🍣",
+        }
+        AddBtn(pg,"📨 Send", function()
+            local q = input.Text
+            if q == "" then return end
+            input.Text = ""
+            AddMsg("🧑 You", q, C_TEXT)
+            task.spawn(function()
+                task.wait(0.4)
+                local reply = nil
+                if AI_API_URL ~= "" then
+                    local res = HttpReq({Url=AI_API_URL, Method="POST",
+                        Headers={["Content-Type"]="application/json"},
+                        Body=HttpService:JSONEncode({prompt=q, user=LP.Name})})
+                    if res and res.Body then
+                        local dec = nil
+                        pcall(function() dec = HttpService:JSONDecode(res.Body) end)
+                        reply = (type(dec)=="table" and (dec.reply or dec.message)) or res.Body
+                    end
+                end
+                reply = reply or Replies[math.random(#Replies)]
+                AddMsg("🌌 MeowlAI", reply, Accent)
+            end)
+        end, Accent)
+        AddBtn(pg,"🤖 AI Coming Soon", function()
+            Notify("🌌 Universe","AI API integration coming in V11! 🚀")
+        end)
+    end
+
+    --================================================================--
+    -- ☁️ CLOUD SCRIPTS
+    --================================================================--
+    do
+        local pg = MakeTab("☁️","Cloud")
+        AddLabel(pg,"☁️ Save script links to your personal cloud (saved on your device):")
+        local CloudFile = "MeowlHub_Cloud.txt"
+        local cloud = {}
+        pcall(function()
+            if isfile and isfile(CloudFile) then
+                for line in string.gmatch(readfile(CloudFile), "[^
+]+") do
+                    local n,u = line:match("^(.-)|(.+)$")
+                    if n and u then table.insert(cloud, {name=n, url=u}) end
+                end
+            end
+        end)
+        local lf = New("Frame",{Size=UDim2.new(1,0,0,130), BackgroundColor3=C_PANEL, Parent=pg})
+        New("UICorner",{CornerRadius=UDim.new(0,14), Parent=lf})
+        local ls = New("ScrollingFrame",{Position=UDim2.new(0,6,0,6), Size=UDim2.new(1,-12,1,-12),
+            BackgroundTransparency=1, ScrollBarThickness=4, ScrollBarImageColor3=Accent,
+            CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.Y, Parent=lf})
+        New("UIListLayout",{Padding=UDim.new(0,4), Parent=ls})
+        local nameBox = AddBox(pg,"Script name...")
+        local urlBox  = AddBox(pg,"Script URL (raw link)...")
+        local function SaveCloud()
+            pcall(function()
+                if writefile then
+                    local s = ""
+                    for _,c in ipairs(cloud) do s = s..c.name.."|"..c.url.."
+" end
+                    writefile(CloudFile, s)
+                end
+            end)
+        end
+        local function RefreshCloud()
+            for _,c in ipairs(ls:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
+            for i,c in ipairs(cloud) do
+                local row = New("Frame",{Size=UDim2.new(1,0,0,30), BackgroundColor3=C_CARD, Parent=ls})
+                New("UICorner",{CornerRadius=UDim.new(0,8), Parent=row})
+                New("TextLabel",{Position=UDim2.new(0,8,0,0), Size=UDim2.new(1,-100,1,0), BackgroundTransparency=1,
+                    Text="☁️ "..c.name, Font=Enum.Font.Gotham, TextSize=12, TextColor3=C_TEXT,
+                    TextXAlignment=Enum.TextXAlignment.Left, Parent=row})
+                local run = New("TextButton",{AnchorPoint=Vector2.new(1,0), Position=UDim2.new(1,-36,0,4),
+                    Size=UDim2.new(0,48,0,22), BackgroundColor3=Accent, Text="Run", Font=Enum.Font.GothamBold,
+                    TextSize=11, TextColor3=C_TEXT, AutoButtonColor=false, Parent=row})
+                New("UICorner",{CornerRadius=UDim.new(0,6), Parent=run}) Reg(run,"BackgroundColor3")
+                local del = New("TextButton",{AnchorPoint=Vector2.new(1,0), Position=UDim2.new(1,-4,0,4),
+                    Size=UDim2.new(0,26,0,22), BackgroundColor3=Color3.fromRGB(200,60,70), Text="✕",
+                    Font=Enum.Font.GothamBold, TextSize=11, TextColor3=C_TEXT, AutoButtonColor=false, Parent=row})
+                New("UICorner",{CornerRadius=UDim.new(0,6), Parent=del})
+                Con(run.MouseButton1Click, function() RunURL(c.url) end)
+                Con(del.MouseButton1Click, function() table.remove(cloud,i) SaveCloud() RefreshCloud() end)
+            end
+        end
+        RefreshCloud()
+        AddBtn(pg,"☁️ Add To Cloud", function()
+            if nameBox.Text ~= "" and urlBox.Text ~= "" then
+                table.insert(cloud, {name=nameBox.Text, url=urlBox.Text})
+                SaveCloud() RefreshCloud()
+                nameBox.Text, urlBox.Text = "", ""
+                Notify("☁️ Cloud","Saved! 🐱")
+            end
+        end, Accent)
+    end
+
+    --================================================================--
+    -- 🎵 MUSIC (20 songs)
+    --================================================================--
+    do
+        local pg = MakeTab("🎵","Music")
+        local Sound = New("Sound",{Name="MeowlMusic", Volume=2, Parent=SoundService})
+        local Songs = {
+            {"Raining Tacos","142376088"},{"Chill Vibes","1837879082"},{"Lofi Beat","1839287284"},
+            {"EDM Party","1841647093"},{"Nightcore","1838028467"},{"Bass Boosted","1837830814"},
+            {"Retro Wave","1843521952"},{"Phonk Drift","1836252005"},{"Synthwave","1841647093"},
+            {"Hip Hop","1839287284"},{"Rock","1837879082"},{"Pop","1843521952"},
+            {"Dubstep","1836252005"},{"Trap","1838028467"},{"Jazz","1839287284"},
+            {"Classical","1837879082"},{"Electronic","1841647093"},{"Metal","1836252005"},
+            {"Reggae","1838028467"},{"Country","1843521952"},
+        }
+        local now = AddLabel(pg,"🎵 Now playing: nothing", 13, C_TEXT)
+        local idx = 0
+        local function Play(i)
+            idx = i
+            Sound:Stop()
+            Sound.SoundId = "rbxassetid://"..Songs[idx][2]
+            now.Text = "🎵 Now playing: "..Songs[idx][1]
+            pcall(function() Sound:Play() end)
+        end
+        AddBtn(pg,"▶ Play Random Music", function() Play(math.random(#Songs)) end, Accent)
+        AddBtn(pg,"⏭ Next Song", function() Play(idx % #Songs + 1) end)
+        AddBtn(pg,"⏹ Stop Music", function() Sound:Stop() now.Text = "🎵 Now playing: nothing" end)
+        local cid = AddBox(pg,"Custom sound ID...")
+        AddBtn(pg,"🎧 Play Custom ID", function()
+            if cid.Text ~= "" then
+                Sound:Stop() Sound.SoundId = "rbxassetid://"..cid.Text:gsub("%D","")
+                now.Text = "🎵 Now playing: custom "..cid.Text
+                pcall(function() Sound:Play() end)
+            end
+        end)
+        local vol = AddBox(pg,"Volume 0-10 (current: 2)")
+        AddBtn(pg,"🔊 Set Volume", function()
+            local v = tonumber(vol.Text)
+            if v then Sound.Volume = math.clamp(v,0,10) Notify("🎵 Music","Volume = "..Sound.Volume) end
+        end)
+        AddBtn(pg,"🔁 Loop Toggle", function()
+            Sound.Looped = not Sound.Looped
+            Notify("🎵 Music","Loop "..(Sound.Looped and "ON" or "OFF"))
+        end)
+        AddLabel(pg,"Some songs may be blocked by Roblox audio privacy - custom IDs always work if the audio is public.")
+    end
+
+    --================================================================--
+    -- ℹ️ INFO
+    --================================================================--
+    do
+        local pg = MakeTab("ℹ️","Info")
+        AddLabel(pg,"🐾 MEOWL HUB - Version 10V", 16, C_TEXT)
+        AddLabel(pg,"👑 Owner: Superman72657
+💜 Credits: meowlsoul_67
+⚡ Your executor: "..EXECUTOR.."
+📱 Mobile friendly: drag the top bar to move, drag ◢ to resize, tap 🐱 to open/close.")
+        AddBtn(pg,"Copy Discord (discord.gg/7YAEYT6tT)", function()
+            setclip(DISCORD) Notify("ℹ️ Info","Discord copied! 🐱")
+        end, Accent)
+        AddLabel(pg,"How to use:
+• 🏠 Home = your profile + game info + feedback + update log
+• ⚡ Executor = run any script
+• 📜/🚀/🎮 = pick a card, press Execute
+• 👤 Player = select a player, then teleport / spectate
+• 👕 Skins = morph into any username
+• 👑 Premium = request access from the owner")
+    end
+
+    --================================================================--
+    -- 👑 PREMIUM + OWNER
+    --================================================================--
+    do
+        local pg = MakeTab("👑","Premium")
+        local me = IsPremium(LP.Name)
+        AddLabel(pg, me and "👑 PREMIUM ACTIVE - welcome, "..LP.DisplayName.."! 🐱" or "🐾 You're on the FREE version", 15, me and Accent or C_TEXT)
+        AddLabel(pg,"👑 Premium gets: early access to new GUI updates, 🌈 Rainbow mode, 🐱☔ Cat Rain, custom toggle icon & more cool things soon!")
+        if not me then
+            AddLabel(pg,"How to get it: press Request → the owner (Superman72657) reviews it → if he accepts, your name goes on the premium list → rejoin & re-execute = PREMIUM 👑")
+            AddBtn(pg,"📨 Request Premium", function()
+                if WEBHOOK_URL ~= "" then
+                    HttpReq({Url=WEBHOOK_URL, Method="POST", Headers={["Content-Type"]="application/json"},
+                        Body=HttpService:JSONEncode({content="🔔 **PREMIUM REQUEST**
+User: **"..LP.Name.."** ("..LP.DisplayName..")
+UserId: "..LP.UserId.."
+Accept = add name to premium list ✅ / Ignore = decline ❌"})})
+                    Notify("👑 Premium","Request sent to the owner! 🐾")
+                else
+                    setclip(DISCORD)
+                    Notify("👑 Premium","Discord copied! DM Superman72657 to ask 👑")
+                end
+            end, Accent)
+        else
+            AddBtn(pg,"🌈 Rainbow GUI", function()
+                Flags.Rainbow = not Flags.Rainbow
+                Notify("👑 Premium","Rainbow "..(Flags.Rainbow and "ON 🌈" or "OFF"))
+            end)
+            AddBtn(pg,"🐱☔ Cat Rain!", function()
+                for i = 1, 25 do
+                    task.spawn(function()
+                        local c = New("TextLabel",{Size=UDim2.new(0,44,0,44),
+                            Position=UDim2.new(math.random(5,95)/100,0,-0.1,0), BackgroundTransparency=1,
+                            Text="🐱", TextSize=34, ZIndex=80, Parent=ScreenGui})
+                        Tw(c, 2 + math.random()*2, {Position=UDim2.new(c.Position.X.Scale,0,1.1,0),
+                            Rotation=math.random(-180,180)}, Enum.EasingStyle.Linear)
+                        task.wait(4.5) pcall(function() c:Destroy() end)
+                    end)
+                    task.wait(0.08)
+                end
+            end)
+            local cimg = AddBox(pg,"Custom cat button image ID...")
+            AddBtn(pg,"🖼️ Set Cat Button Image", function()
+                if cimg.Text ~= "" then
+                    CatBtn.Text = ""
+                    New("ImageLabel",{Size=UDim2.new(1,0,1,0), BackgroundTransparency=1,
+                        Image="rbxassetid://"..cimg.Text:gsub("%D",""), Parent=CatBtn})
+                    Notify("👑 Premium","Custom icon set! 🐱")
+                end
+            end)
+        end
+        if LP.Name:lower() == OWNER_USER then
+            AddLabel(pg,"━━━━━━━━━━ 👑 OWNER PANEL 👑 ━━━━━━━━━━", 14, Accent)
+            AddLabel(pg,"You are the OWNER 🐱 Permanent premium = put names in your pastebin list (PREMIUM_LIST_URL at the top of the script), 1 name per line. Accept = add name ✅ Decline = don't ❌")
+            AddBtn(pg,"🔄 Reload Premium List", function()
+                LoadPremiumList() Notify("👑 Owner","Premium list reloaded!")
+            end)
+            AddBtn(pg,"🌈 Owner Rainbow Mode", function()
+                Flags.Rainbow = not Flags.Rainbow
+                Notify("👑 Owner","Rainbow "..(Flags.Rainbow and "ON 🌈" or "OFF"))
+            end)
+            AddBtn(pg,"📢 Announce In Chat", function()
+                Chat("🐾 MEOWL HUB V10 is in this server! discord.gg/7YAEYT6tT 🐾")
+                Notify("👑 Owner","Announced! 📢")
+            end)
+        end
+    end
+
+    --================================================================--
+    -- ⚙️ SETTINGS
+    --================================================================--
+    do
+        local pg = MakeTab("⚙️","Settings")
+        AddLabel(pg,"🎨 Theme color:")
+        local themes = {
+            {"💜 Purple",Color3.fromRGB(170,85,255)},{"💙 Blue",Color3.fromRGB(70,130,255)},
+            {"💗 Pink",Color3.fromRGB(255,90,160)},{"❤️ Red",Color3.fromRGB(255,70,70)},
+            {"💚 Green",Color3.fromRGB(80,220,120)},{"🧡 Orange",Color3.fromRGB(255,150,60)},
+        }
+        local tg = New("Frame",{Size=UDim2.new(1,0,0,0), AutomaticSize=Enum.AutomaticSize.Y, BackgroundTransparency=1, Parent=pg})
+        New("UIGridLayout",{CellSize=UDim2.new(1/3,-7,0,38), CellPadding=UDim2.new(0,8,0,8), Parent=tg})
+        for _,t in ipairs(themes) do
+            local b = New("TextButton",{BackgroundColor3=C_CARD, Text=t[1], Font=Enum.Font.GothamBold, TextSize=11,
+                TextColor3=C_TEXT, AutoButtonColor=false, Parent=tg})
+            New("UICorner",{CornerRadius=UDim.new(0,10), Parent=b})
+            Con(b.MouseButton1Click, function()
+                Flags.Rainbow = false Accent = t[2] ApplyAccent()
+                Notify("⚙️ Settings","Theme changed! 🎨")
+            end)
+        end
+        AddBtn(pg,"✨ Animations: ON/OFF", function()
+            Anims = not Anims
+            Notify("⚙️ Settings","Animations "..(Anims and "ON ✨" or "OFF"))
+        end)
+        AddBtn(pg,"🔍 GUI Size +", function()
+            MainScale.Scale = math.clamp(MainScale.Scale + 0.1, 0.6, 1.5)
+        end)
+        AddBtn(pg,"🔎 GUI Size -", function()
+            MainScale.Scale = math.clamp(MainScale.Scale - 0.1, 0.6, 1.5)
+        end)
+        AddBtn(pg,"📍 Reset GUI Position", function()
+            Main.Position = UDim2.new(0.5,0,0.5,0)
+            CatBtn.Position = UDim2.new(0,18,0.5,-29)
+        end)
+        AddBtn(pg,"💀 Destroy Hub", function()
+            for _,c in ipairs(Cons) do pcall(function() c:Disconnect() end) end
+            pcall(function() game:GetService("SoundService"):FindFirstChild("MeowlMusic"):Destroy() end)
+            ScreenGui:Destroy() NotifGui:Destroy()
+        end, Color3.fromRGB(200,60,70))
+    end
+
+    --=== rainbow loop ===--
+    Con(RunService.RenderStepped, function()
+        if Flags.Rainbow then
+            Accent = Color3.fromHSV((tick()*0.15)%1, 0.75, 1)
+            ApplyAccent()
+        end
+    end)
+
+    SwitchTab("Home")
+    Main.Visible = false
+    task.delay(0.1, function() SetHub(true) end)
+    Notify("🐾 MEOWL HUB","Loaded! Welcome "..LP.DisplayName.." 🐱 ("..Rank()..")")
+end
+
+--============================================================--
+-- 🔑 KEY SYSTEM
+--============================================================--
+do
+    local KeyFrame = New("Frame",{AnchorPoint=Vector2.new(0.5,0.5), Position=UDim2.new(0.5,0,0.5,0),
+        Size=UDim2.new(0,330,0,430), BackgroundColor3=C_BG, Parent=ScreenGui, ZIndex=100})
+    New("UICorner",{CornerRadius=UDim.new(0,18), Parent=KeyFrame})
+    local ks = New("UIStroke",{Thickness=2, Parent=KeyFrame})
+    ks.Color = Accent
+    New("UIGradient",{Color=ColorSequence.new(Color3.fromRGB(45,30,70), Color3.fromRGB(22,22,30)),
+        Rotation=90, Parent=KeyFrame})
+    local KScale = New("UIScale",{Scale=0.6, Parent=KeyFrame})
+    Tw(KScale,.4,{Scale=1},Enum.EasingStyle.Back)
+
+    New("TextLabel",{Position=UDim2.new(0,0,0,22), Size=UDim2.new(1,0,0,84), BackgroundTransparency=1,
+        Text="🐱", TextSize=72, Font=Enum.Font.GothamBold, Parent=KeyFrame, ZIndex=101})
+    New("TextLabel",{Position=UDim2.new(0,0,0,112), Size=UDim2.new(1,0,0,36), BackgroundTransparency=1,
+        Text="MEOWL HUB", Font=Enum.Font.GothamBold, TextSize=30, TextColor3=C_TEXT, Parent=KeyFrame, ZIndex=101})
+    New("TextLabel",{Position=UDim2.new(0,0,0,148), Size=UDim2.new(1,0,0,20), BackgroundTransparency=1,
+        Text="V10  -  Key System", Font=Enum.Font.Gotham, TextSize=13, TextColor3=C_SUB, Parent=KeyFrame, ZIndex=101})
+
+    local KeyBox = New("TextBox",{Position=UDim2.new(0,30,0,186), Size=UDim2.new(1,-60,0,44),
+        BackgroundColor3=C_CARD, Text="", PlaceholderText="Enter Key... 🗝️", PlaceholderColor3=C_SUB,
+        Font=Enum.Font.GothamBold, TextSize=14, TextColor3=C_TEXT, ClearTextOnFocus=false, Parent=KeyFrame, ZIndex=101})
+    New("UICorner",{CornerRadius=UDim.new(0,12), Parent=KeyBox})
+
+    local Submit = New("TextButton",{Position=UDim2.new(0,30,0,242), Size=UDim2.new(1,-60,0,44),
+        BackgroundColor3=Accent, Text="🔓 Submit Key", Font=Enum.Font.GothamBold, TextSize=15,
+        TextColor3=C_TEXT, AutoButtonColor=false, Parent=KeyFrame, ZIndex=101})
+    New("UICorner",{CornerRadius=UDim.new(0,12), Parent=Submit})
+
+    local GetKey = New("TextButton",{Position=UDim2.new(0,30,0,296), Size=UDim2.new(1,-60,0,38),
+        BackgroundColor3=C_CARD, Text="🔑 Get Key (copies Discord)", Font=Enum.Font.GothamBold, TextSize=12,
+        TextColor3=C_TEXT, AutoButtonColor=false, Parent=KeyFrame, ZIndex=101})
+    New("UICorner",{CornerRadius=UDim.new(0,12), Parent=GetKey})
+
+    New("TextLabel",{Position=UDim2.new(0,0,0,344), Size=UDim2.new(1,0,0,18), BackgroundTransparency=1,
+        Text="🔑 Key is in the Discord server!", Font=Enum.Font.Gotham, TextSize=11,
+        TextColor3=C_SUB, Parent=KeyFrame, ZIndex=101})
+    New("TextLabel",{Position=UDim2.new(0,0,1,-46), Size=UDim2.new(1,0,0,36), BackgroundTransparency=1,
+        Text="👑 Owner: Superman72657  -  💜 Credits: meowlsoul_67", Font=Enum.Font.Gotham, TextSize=10,
+        TextColor3=C_SUB, Parent=KeyFrame, ZIndex=101})
+
+    local X = New("TextButton",{AnchorPoint=Vector2.new(1,0), Position=UDim2.new(1,-10,0,10),
+        Size=UDim2.new(0,30,0,30), BackgroundColor3=C_CARD, Text="✕", Font=Enum.Font.GothamBold,
+        TextSize=14, TextColor3=C_TEXT, AutoButtonColor=false, Parent=KeyFrame, ZIndex=101})
+    New("UICorner",{CornerRadius=UDim.new(0,8), Parent=X})
+    X.MouseButton1Click:Connect(function() ScreenGui:Destroy() NotifGui:Destroy() end)
+
+    GetKey.MouseButton1Click:Connect(function()
+        setclip(DISCORD)
+        Notify("🐾 MEOWL HUB","Discord copied! Get your key there 🔑")
+    end)
+
+    local function Shake()
+        task.spawn(function()
+            for i = 1, 6 do
+                KeyFrame.Position = UDim2.new(0.5, (i%2==0 and 12 or -12), 0.5, 0)
+                task.wait(0.045)
+            end
+            KeyFrame.Position = UDim2.new(0.5,0,0.5,0)
+        end)
+    end
+
+    Submit.MouseButton1Click:Connect(function()
+        if KeyBox.Text:gsub("%s","") == KEY then
+            Notify("🐾 MEOWL HUB","Correct key! Welcome 🐱")
+            Tw(KScale,.3,{Scale=0.6},Enum.EasingStyle.Back,Enum.EasingDirection.In)
+            task.delay(.32, function() pcall(function() KeyFrame:Destroy() end) end)
+            BuildHub()
+        else
+            Shake()
+            KeyBox.Text = ""
+            KeyBox.PlaceholderText = "Wrong key 😿 try again!"
+        end
+    end)
+end
